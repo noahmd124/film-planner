@@ -114,8 +114,8 @@
 
  <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBjYhxjnaiGK4ZrYRQLUHdFhKzoo6arhb8",
@@ -132,44 +132,49 @@
 
   let userId = null;
 
-  // LOGIN
-  function login() {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
-    signInWithEmailAndPassword(auth, email, pass)
-      .catch(e => {
-        document.getElementById('auth-error').innerText = e.message;
-      });
-  }
+ const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+let userId = null;
 
-  // SIGNUP
-  function signup() {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
-    createUserWithEmailAndPassword(auth, email, pass)
-      .catch(e => {
-        document.getElementById('auth-error').innerText = e.message;
-      });
-  }
+window.login = () => {
+  const email = document.getElementById('email').value;
+  const pass = document.getElementById('password').value;
+  signInWithEmailAndPassword(auth, email, pass)
+    .catch(e => { document.getElementById('auth-error').innerText = e.message; });
+}
+
+window.signup = () => {
+  const email = document.getElementById('email').value;
+  const pass = document.getElementById('password').value;
+  createUserWithEmailAndPassword(auth, email, pass)
+    .catch(e => { document.getElementById('auth-error').innerText = e.message; });
+}
+
+window.logout = () => {
+  signOut(auth);
+}
+
+ 
 
   // LOGOUT
   function logout() {
     signOut(auth);
   }
 
-  // AUTH STATE
-  onAuthStateChanged(auth, (u) => {
-    if (u) {
-      userId = u.uid;
-      document.getElementById('auth-section').classList.add('hidden');
-      document.getElementById('app-section').classList.remove('hidden');
-      loadData();
-    } else {
-      userId = null;
-      document.getElementById('auth-section').classList.remove('hidden');
-      document.getElementById('app-section').classList.add('hidden');
-    }
-  });
+ onAuthStateChanged(auth, (u) => {
+  if(u){
+    userId = u.uid;
+    document.getElementById('auth-section').classList.add('hidden');
+    document.getElementById('app-section').classList.remove('hidden');
+    // optionally call loadData() here
+  } else {
+    userId = null;
+    document.getElementById('auth-section').classList.remove('hidden');
+    document.getElementById('app-section').classList.add('hidden');
+  }
+});
+
 
   // --- Your addItem, addCrew, saveScript, addBudget, loadData functions ---
   // Make sure to replace all `db.collection(...).doc(...)` with `collection(db, 'users')` / `doc(db, 'users', userId)` style
