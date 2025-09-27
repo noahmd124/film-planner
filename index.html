@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Film Planner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+      min-height: 100vh;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background: rgba(0,0,0,0.75);
+      padding: 2rem;
+      border-radius: 1rem;
+      width: 90%;
+      max-width: 900px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .hidden { display: none; }
+    input, textarea, button {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      border-radius: 0.5rem;
+      border: none;
+      font-size: 1rem;
+    }
+    button {
+      background: #fdbb2d;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #ffcc55;
+    }
+    .section {
+      margin: 1.5rem 0;
+      padding: 1rem;
+      background: rgba(255,255,255,0.1);
+      border-radius: 0.75rem;
+    }
+    ul {
+      padding-left: 1.2rem;
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div id="auth-section">
+      <h1>🎬 Film Planner Login</h1>
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+      <button onclick="login()">Login</button>
+      <button onclick="signup()">Sign Up</button>
+      <p id="auth-error"></p>
+    </div>
+
+    <div id="app-section" class="hidden">
+      <h1>🎥 Film Planner Dashboard</h1>
+      <button onclick="logout()">Logout</button>
+
+      <div class="section">
+        <h2>📸 Cameras & Products</h2>
+        <input type="text" id="gearInput" placeholder="Add camera or product">
+        <button onclick="addItem('gear')">Add</button>
+        <ul id="gearList"></ul>
+      </div>
+
+      <div class="section">
+        <h2>📍 Locations</h2>
+        <input type="text" id="locationInput" placeholder="Add location">
+        <button onclick="addItem('locations')">Add</button>
+        <ul id="locationList"></ul>
+      </div>
+
+      <div class="section">
+        <h2>🎭 Crew Management</h2>
+        <input type="text" id="crewName" placeholder="Crew Member Name">
+        <input type="text" id="crewRole" placeholder="Role (e.g. Director, DP)">
+        <button onclick="addCrew()">Add Crew Member</button>
+        <ul id="crewList"></ul>
+      </div>
+
+      <div class="section">
+        <h2>📖 Script Writing</h2>
+        <textarea id="scriptText" rows="6" placeholder="Write or paste your script here..."></textarea>
+        <button onclick="saveScript()">Save Script</button>
+      </div>
+
+      <div class="section">
+        <h2>💰 Budget Tracker</h2>
+        <input type="text" id="budgetItem" placeholder="Item (e.g. Camera Rental)">
+        <input type="number" id="budgetCost" placeholder="Cost (£)">
+        <button onclick="addBudget()">Add Budget Item</button>
+        <ul id="budgetList"></ul>
+        <p><strong>Total:</strong> £<span id="budgetTotal">0</span></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjYhxjnaiGK4ZrYRQLUHdFhKzoo6arhb8",
+      authDomain: "actualfilmproject.firebaseapp.com",
+      projectId: "actualfilmproject",
+      storageBucket: "actualfilmproject.firebasestorage.app",
+      messagingSenderId: "63162562345",
+      appId: "1:63162562345:web:0450787dfc8d7f54f8e938"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let userId = null;
+
+    // Auth Functions
+    function login(){
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
+      auth.signInWithEmailAndPassword(email, pass).catch(e=>{
+        document.getElementById('auth-error').innerText = e.message;
+      });
+    }
+
+    function signup(){
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
+      auth.createUserWithEmailAndPassword(email, pass).catch(e=>{
+        document.getElementById('auth-error').innerText = e.message;
+      });
+    }
+
+    function logout(){ auth.signOut(); }
+
+    auth.onAuthStateChanged(u=>{
+      if(u){
+        userId = u.uid;
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('app-section').classList.remove('hidden');
+        loadData();
+      } else {
+        userId = null;
+        document.getElementById('auth-section').classList.remove('hidden');
+        document.getElementById('app-section').classList.add('hidden');
+      }
+    });
+
+    // Data Functions
+    async function addItem(type){
+      const input = document.getElementById(type+"Input");
+      if(input.value.trim() === "") return;
+      await db.collection('users').doc(userId).collection(type).add({ name: input.value });
+      input.value = "";
+      loadData();
+    }
+
+    async function addCrew(){
+      const name = document.getElementById('crewName').value;
+      const role = document.getElementById('crewRole').value;
+      if(!name || !role) return;
+      await db.collection('users').doc(userId).collection('crew').add({ name, role });
+      document.getElementById('crewName').value="";
+      document.getElementById('crewRole').value="";
+      loadData();
+    }
+
+    async function saveScript(){
+      const text = document.getElementById('scriptText').value;
+      await db.collection('users').doc(userId).set({ script: text }, { merge:true });
+      alert("Script saved!");
+    }
+
+    async function addBudget(){
+      const item = document.getElementById('budgetItem').value;
+      const cost = parseFloat(document.getElementById('budgetCost').value);
+      if(!item || isNaN(cost)) return;
+      await db.collection('users').doc(userId).collection('budget').add({ item, cost });
+      document.getElementById('budgetItem').value="";
+      document.getElementById('budgetCost').value="";
+      loadData();
+    }
+
+    async function loadData(){
+      // Load gear
+      let gearList = document.getElementById('gearList');
+      gearList.innerHTML="";
+      const gearSnap = await db.collection('users').doc(userId).collection('gear').get();
+      gearSnap.forEach(doc=>{
+        gearList.innerHTML += `<li>${doc.data().name}</li>`;
+      });
+
+      // Load locations
+      let locationList = document.getElementById('locationList');
+      locationList.innerHTML="";
+      const locSnap = await db.collection('users').doc(userId).collection('locations').get();
+      locSnap.forEach(doc=>{
+        locationList.innerHTML += `<li>${doc.data().name}</li>`;
+      });
+
+      // Load crew
+      let crewList = document.getElementById('crewList');
+      crewList.innerHTML="";
+      const crewSnap = await db.collection('users').doc(userId).collection('crew').get();
+      crewSnap.forEach(doc=>{
+        crewList.innerHTML += `<li>${doc.data().name} - ${doc.data().role}</li>`;
+      });
+
+      // Load script
+      const userDoc = await db.collection('users').doc(userId).get();
+      if(userDoc.exists && userDoc.data().script){
+        document.getElementById('scriptText').value = userDoc.data().script;
+      }
+
+      // Load budget
+      let budgetList = document.getElementById('budgetList');
+      budgetList.innerHTML="";
+      let total=0;
+      const budSnap = await db.collection('users').doc(userId).collection('budget').get();
+      budSnap.forEach(doc=>{
+        const d = doc.data();
+        budgetList.innerHTML += `<li>${d.item}: £${d.cost}</li>`;
+        total += d.cost;
+      });
+      document.getElementById('budgetTotal').innerText = total;
+    }
+  </script>
+</body>
+</html>
