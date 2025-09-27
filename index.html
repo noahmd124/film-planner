@@ -2,120 +2,226 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Film Planner</title>
+  <title>🎬 Film Planner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-      min-height: 100vh;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
       color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
+      min-height: 100vh;
     }
+
     .container {
-      background: rgba(0,0,0,0.75);
+      width: 95%;
+      max-width: 1200px;
+      min-height: 90vh;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border-radius: 15px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 40px rgba(0,0,0,0.7);
+      overflow: hidden;
+    }
+
+    /* LOGIN */
+    #auth-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       padding: 2rem;
-      border-radius: 1rem;
-      width: 90%;
-      max-width: 900px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
-    h1, h2 {
-      text-align: center;
+    #auth-section h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
     }
-    .hidden { display: none; }
-    input, textarea, button {
-      width: 100%;
-      padding: 0.5rem;
+    #auth-section input {
+      width: 300px;
+      padding: 0.8rem;
       margin: 0.5rem 0;
-      border-radius: 0.5rem;
+      border-radius: 10px;
       border: none;
       font-size: 1rem;
+      outline: none;
     }
-    button {
-      background: #fdbb2d;
-      color: #000;
+    #auth-section button {
+      width: 320px;
+      margin: 0.5rem 0;
+      padding: 0.8rem;
+      font-size: 1.1rem;
       font-weight: bold;
+      border-radius: 10px;
+      border: none;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
-    button:hover {
-      background: #ffcc55;
+    #auth-section button:hover { transform: scale(1.05); }
+
+    /* DASHBOARD */
+    #app-section {
+      display: flex;
+      flex: 1;
+      height: 100%;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+    }
+    .sidebar h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .sidebar button {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      margin: 0.5rem 0;
+      padding: 0.8rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+    .sidebar button:hover { background: rgba(255,255,255,0.2); }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
     }
     .section {
-      margin: 1.5rem 0;
+      background: rgba(255,255,255,0.05);
       padding: 1rem;
+      border-radius: 15px;
+      margin-bottom: 1.5rem;
+    }
+    .section h3 {
+      margin-top: 0;
+    }
+    .section input, .section textarea {
+      width: 100%;
+      padding: 0.6rem;
+      margin: 0.5rem 0;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      outline: none;
+    }
+    .section button {
+      background: #ffbb33;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+    .section button:hover { background: #ffd966; }
+    ul { padding-left: 1.2rem; }
+    li {
+      margin: 0.5rem 0;
+      padding: 0.4rem;
       background: rgba(255,255,255,0.1);
-      border-radius: 0.75rem;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    ul {
-      padding-left: 1.2rem;
-    }
+    li button { background: #ff4444; padding: 0.3rem 0.6rem; font-size: 0.8rem; }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 </head>
 <body>
-  <div class="container">
-    <div id="auth-section">
-      <h1>🎬 Film Planner Login</h1>
-      <input type="email" id="email" placeholder="Email">
-      <input type="password" id="password" placeholder="Password">
-      <button onclick="login()">Login</button>
-      <button onclick="signup()">Sign Up</button>
-      <p id="auth-error"></p>
-    </div>
 
-    <div id="app-section" class="hidden">
-      <h1>🎥 Film Planner Dashboard</h1>
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="auth-section">
+    <h1>🎬 Film Planner</h1>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <button onclick="signup()">Sign Up</button>
+    <p id="auth-error"></p>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="app-section" class="hidden">
+    <div class="sidebar">
+      <h2>Dashboard</h2>
+      <button onclick="showSection('gear')">📸 Cameras & Products</button>
+      <button onclick="showSection('locations')">📍 Locations</button>
+      <button onclick="showSection('crew')">🎭 Crew</button>
+      <button onclick="showSection('script')">📖 Script</button>
+      <button onclick="showSection('budget')">💰 Budget</button>
       <button onclick="logout()">Logout</button>
-
-      <div class="section">
-        <h2>📸 Cameras & Products</h2>
-        <input type="text" id="gearInput" placeholder="Add camera or product">
+    </div>
+    <div class="main">
+      <!-- Cameras & Products -->
+      <div class="section" id="gear-section">
+        <h3>📸 Cameras & Products</h3>
+        <input type="text" id="gearInput" placeholder="Add camera/product">
         <button onclick="addItem('gear')">Add</button>
         <ul id="gearList"></ul>
       </div>
 
-      <div class="section">
-        <h2>📍 Locations</h2>
+      <!-- Locations -->
+      <div class="section hidden" id="locations-section">
+        <h3>📍 Locations</h3>
         <input type="text" id="locationInput" placeholder="Add location">
         <button onclick="addItem('locations')">Add</button>
         <ul id="locationList"></ul>
       </div>
 
-      <div class="section">
-        <h2>🎭 Crew Management</h2>
-        <input type="text" id="crewName" placeholder="Crew Member Name">
-        <input type="text" id="crewRole" placeholder="Role (e.g. Director, DP)">
-        <button onclick="addCrew()">Add Crew Member</button>
+      <!-- Crew -->
+      <div class="section hidden" id="crew-section">
+        <h3>🎭 Crew Management</h3>
+        <input type="text" id="crewName" placeholder="Name">
+        <input type="text" id="crewRole" placeholder="Role">
+        <button onclick="addCrew()">Add Crew</button>
         <ul id="crewList"></ul>
       </div>
 
-      <div class="section">
-        <h2>📖 Script Writing</h2>
-        <textarea id="scriptText" rows="6" placeholder="Write or paste your script here..."></textarea>
+      <!-- Script -->
+      <div class="section hidden" id="script-section">
+        <h3>📖 Script Writing</h3>
+        <textarea id="scriptText" rows="8" placeholder="Write your script..."></textarea>
         <button onclick="saveScript()">Save Script</button>
       </div>
 
-      <div class="section">
-        <h2>💰 Budget Tracker</h2>
-        <input type="text" id="budgetItem" placeholder="Item (e.g. Camera Rental)">
+      <!-- Budget -->
+      <div class="section hidden" id="budget-section">
+        <h3>💰 Budget Tracker</h3>
+        <input type="text" id="budgetItem" placeholder="Item">
         <input type="number" id="budgetCost" placeholder="Cost (£)">
-        <button onclick="addBudget()">Add Budget Item</button>
+        <button onclick="addBudget()">Add Item</button>
         <ul id="budgetList"></ul>
         <p><strong>Total:</strong> £<span id="budgetTotal">0</span></p>
       </div>
     </div>
   </div>
 
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBjYhxjnaiGK4ZrYRQLUHdFhKzoo6arhb8",
@@ -131,39 +237,98 @@
   const db = getFirestore(app);
   let userId = null;
 
-  // LOGIN
+  // LOGIN / SIGNUP / LOGOUT
   window.login = () => {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
-    signInWithEmailAndPassword(auth, email, pass)
-      .catch(e => { document.getElementById('auth-error').innerText = e.message; });
+    signInWithEmailAndPassword(auth,email,pass).catch(e=>document.getElementById('auth-error').innerText=e.message);
   }
-
-  // SIGNUP
   window.signup = () => {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
-    createUserWithEmailAndPassword(auth, email, pass)
-      .catch(e => { document.getElementById('auth-error').innerText = e.message; });
+    createUserWithEmailAndPassword(auth,email,pass).catch(e=>document.getElementById('auth-error').innerText=e.message);
   }
+  window.logout = () => signOut(auth);
 
-  // LOGOUT
-  window.logout = () => { signOut(auth); }
-
-  // AUTH STATE
-  onAuthStateChanged(auth, (u) => {
+  onAuthStateChanged(auth,u=>{
     if(u){
-      userId = u.uid;
+      userId=u.uid;
       document.getElementById('auth-section').classList.add('hidden');
       document.getElementById('app-section').classList.remove('hidden');
+      loadData();
     } else {
-      userId = null;
+      userId=null;
       document.getElementById('auth-section').classList.remove('hidden');
       document.getElementById('app-section').classList.add('hidden');
     }
   });
 
-  // TODO: update addItem, addCrew, saveScript, addBudget, loadData to modular Firestore
+  // SWITCH SECTIONS
+  window.showSection = (s) => {
+    ['gear','locations','crew','script','budget'].forEach(sec=>{
+      document.getElementById(sec+'-section').classList.add('hidden');
+    });
+    document.getElementById(s+'-section').classList.remove('hidden');
+  }
+
+  // FIRESTORE FUNCTIONS
+  async function addItem(type){
+    const input = document.getElementById(type+'Input');
+    if(!input.value.trim()) return;
+    await addDoc(collection(db,'users',userId,type),{name:input.value});
+    input.value=''; loadData();
+  }
+
+  async function addCrew(){
+    const name = document.getElementById('crewName').value;
+    const role = document.getElementById('crewRole').value;
+    if(!name || !role) return;
+    await addDoc(collection(db,'users',userId,'crew'),{name,role});
+    document.getElementById('crewName').value=''; document.getElementById('crewRole').value='';
+    loadData();
+  }
+
+  async function saveScript(){
+    const text = document.getElementById('scriptText').value;
+    await setDoc(doc(db,'users',userId),{script:text},{merge:true});
+    alert('Script saved!');
+  }
+
+  async function addBudget(){
+    const item = document.getElementById('budgetItem').value;
+    const cost = parseFloat(document.getElementById('budgetCost').value);
+    if(!item || isNaN(cost)) return;
+    await addDoc(collection(db,'users',userId,'budget'),{item,cost});
+    document.getElementById('budgetItem').value=''; document.getElementById('budgetCost').value='';
+    loadData();
+  }
+
+  async function loadData(){
+    // Gear
+    const gearList=document.getElementById('gearList'); gearList.innerHTML='';
+    const gearSnap=await getDocs(collection(db,'users',userId,'gear'));
+    gearSnap.forEach(d=>{gearList.innerHTML+=`<li>${d.data().name} <button onclick="deleteDoc(doc(db,'users','${userId}','gear','${d.id}'));">X</button></li>`;});
+
+    // Locations
+    const locList=document.getElementById('locationList'); locList.innerHTML='';
+    const locSnap=await getDocs(collection(db,'users',userId,'locations'));
+    locSnap.forEach(d=>{locList.innerHTML+=`<li>${d.data().name} <button onclick="deleteDoc(doc(db,'users','${userId}','locations','${d.id}'));">X</button></li>`;});
+
+    // Crew
+    const crewList=document.getElementById('crewList'); crewList.innerHTML='';
+    const crewSnap=await getDocs(collection(db,'users',userId,'crew'));
+    crewSnap.forEach(d=>{crewList.innerHTML+=`<li>${d.data().name} - ${d.data().role} <button onclick="deleteDoc(doc(db,'users','${userId}','crew','${d.id}'));">X</button></li>`;});
+
+    // Script
+    const docSnap=await getDoc(doc(db,'users',userId));
+    if(docSnap.exists() && docSnap.data().script) document.getElementById('scriptText').value=docSnap.data().script;
+
+    // Budget
+    const budgetList=document.getElementById('budgetList'); budgetList.innerHTML=''; let total=0;
+    const budSnap=await getDocs(collection(db,'users',userId,'budget'));
+    budSnap.forEach(d=>{budgetList.innerHTML+=`<li>${d.data().item}: £${d.data().cost} <button onclick="deleteDoc(doc(db,'users','${userId}','budget','${d.id}'));">X</button></li>`; total+=d.data().cost;});
+    document.getElementById('budgetTotal').innerText=total;
+  }
 </script>
 
 </body>
