@@ -112,133 +112,68 @@
     </div>
   </div>
 
-  <script>
-    // Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBjYhxjnaiGK4ZrYRQLUHdFhKzoo6arhb8",
-      authDomain: "actualfilmproject.firebaseapp.com",
-      projectId: "actualfilmproject",
-      storageBucket: "actualfilmproject.firebasestorage.app",
-      messagingSenderId: "63162562345",
-      appId: "1:63162562345:web:0450787dfc8d7f54f8e938"
-    };
+ <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  const firebaseConfig = {
+    apiKey: "AIzaSyBjYhxjnaiGK4ZrYRQLUHdFhKzoo6arhb8",
+    authDomain: "actualfilmproject.firebaseapp.com",
+    projectId: "actualfilmproject",
+    storageBucket: "actualfilmproject.firebasestorage.app",
+    messagingSenderId: "63162562345",
+    appId: "1:63162562345:web:0450787dfc8d7f54f8e938"
+  };
 
-    let userId = null;
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    // Auth Functions
-    function login(){
-      const email = document.getElementById('email').value;
-      const pass = document.getElementById('password').value;
-      auth.signInWithEmailAndPassword(email, pass).catch(e=>{
+  let userId = null;
+
+  // LOGIN
+  function login() {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('password').value;
+    signInWithEmailAndPassword(auth, email, pass)
+      .catch(e => {
         document.getElementById('auth-error').innerText = e.message;
       });
-    }
+  }
 
-    function signup(){
-      const email = document.getElementById('email').value;
-      const pass = document.getElementById('password').value;
-      auth.createUserWithEmailAndPassword(email, pass).catch(e=>{
+  // SIGNUP
+  function signup() {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('password').value;
+    createUserWithEmailAndPassword(auth, email, pass)
+      .catch(e => {
         document.getElementById('auth-error').innerText = e.message;
       });
-    }
+  }
 
-    function logout(){ auth.signOut(); }
+  // LOGOUT
+  function logout() {
+    signOut(auth);
+  }
 
-    auth.onAuthStateChanged(u=>{
-      if(u){
-        userId = u.uid;
-        document.getElementById('auth-section').classList.add('hidden');
-        document.getElementById('app-section').classList.remove('hidden');
-        loadData();
-      } else {
-        userId = null;
-        document.getElementById('auth-section').classList.remove('hidden');
-        document.getElementById('app-section').classList.add('hidden');
-      }
-    });
-
-    // Data Functions
-    async function addItem(type){
-      const input = document.getElementById(type+"Input");
-      if(input.value.trim() === "") return;
-      await db.collection('users').doc(userId).collection(type).add({ name: input.value });
-      input.value = "";
+  // AUTH STATE
+  onAuthStateChanged(auth, (u) => {
+    if (u) {
+      userId = u.uid;
+      document.getElementById('auth-section').classList.add('hidden');
+      document.getElementById('app-section').classList.remove('hidden');
       loadData();
+    } else {
+      userId = null;
+      document.getElementById('auth-section').classList.remove('hidden');
+      document.getElementById('app-section').classList.add('hidden');
     }
+  });
 
-    async function addCrew(){
-      const name = document.getElementById('crewName').value;
-      const role = document.getElementById('crewRole').value;
-      if(!name || !role) return;
-      await db.collection('users').doc(userId).collection('crew').add({ name, role });
-      document.getElementById('crewName').value="";
-      document.getElementById('crewRole').value="";
-      loadData();
-    }
+  // --- Your addItem, addCrew, saveScript, addBudget, loadData functions ---
+  // Make sure to replace all `db.collection(...).doc(...)` with `collection(db, 'users')` / `doc(db, 'users', userId)` style
+</script>
 
-    async function saveScript(){
-      const text = document.getElementById('scriptText').value;
-      await db.collection('users').doc(userId).set({ script: text }, { merge:true });
-      alert("Script saved!");
-    }
-
-    async function addBudget(){
-      const item = document.getElementById('budgetItem').value;
-      const cost = parseFloat(document.getElementById('budgetCost').value);
-      if(!item || isNaN(cost)) return;
-      await db.collection('users').doc(userId).collection('budget').add({ item, cost });
-      document.getElementById('budgetItem').value="";
-      document.getElementById('budgetCost').value="";
-      loadData();
-    }
-
-    async function loadData(){
-      // Load gear
-      let gearList = document.getElementById('gearList');
-      gearList.innerHTML="";
-      const gearSnap = await db.collection('users').doc(userId).collection('gear').get();
-      gearSnap.forEach(doc=>{
-        gearList.innerHTML += `<li>${doc.data().name}</li>`;
-      });
-
-      // Load locations
-      let locationList = document.getElementById('locationList');
-      locationList.innerHTML="";
-      const locSnap = await db.collection('users').doc(userId).collection('locations').get();
-      locSnap.forEach(doc=>{
-        locationList.innerHTML += `<li>${doc.data().name}</li>`;
-      });
-
-      // Load crew
-      let crewList = document.getElementById('crewList');
-      crewList.innerHTML="";
-      const crewSnap = await db.collection('users').doc(userId).collection('crew').get();
-      crewSnap.forEach(doc=>{
-        crewList.innerHTML += `<li>${doc.data().name} - ${doc.data().role}</li>`;
-      });
-
-      // Load script
-      const userDoc = await db.collection('users').doc(userId).get();
-      if(userDoc.exists && userDoc.data().script){
-        document.getElementById('scriptText').value = userDoc.data().script;
-      }
-
-      // Load budget
-      let budgetList = document.getElementById('budgetList');
-      budgetList.innerHTML="";
-      let total=0;
-      const budSnap = await db.collection('users').doc(userId).collection('budget').get();
-      budSnap.forEach(doc=>{
-        const d = doc.data();
-        budgetList.innerHTML += `<li>${d.item}: £${d.cost}</li>`;
-        total += d.cost;
-      });
-      document.getElementById('budgetTotal').innerText = total;
-    }
-  </script>
 </body>
 </html>
